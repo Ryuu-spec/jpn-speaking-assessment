@@ -32,7 +32,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 16px;
+    padding: 12px;
     box-sizing: border-box;
   }
 
@@ -214,13 +214,13 @@
   #tool-screen {
     display: none;
     width: 100%;
-    max-width: min(900px, calc(100vw - 32px));
+    max-width: min(1100px, calc(100vw - 24px));
   }
 
   .tool-card {
     background: var(--bg);
     border-radius: 24px;
-    padding: 18px 28px 18px;
+    padding: 16px 28px 18px;
     box-shadow: 0 8px 40px rgba(0,0,0,0.15);
     position: relative;
     overflow: hidden;
@@ -228,14 +228,14 @@
 
   .tool-title {
     font-family: 'Klee One', serif;
-    font-size: clamp(1.3rem, 3vw, 1.8rem);
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
     font-weight: 600;
     text-align: center;
     color: var(--title-text);
     background: var(--title-bg);
-    padding: 12px 32px;
+    padding: 13px 80px 13px 32px;
     border-radius: 50px;
-    margin: 6px 0 14px;
+    margin: 0 0 14px;
     letter-spacing: 0.12em;
   }
 
@@ -400,17 +400,19 @@
 
   .back-btn {
     position: absolute;
-    top: 14px; right: 14px;
-    background: rgba(0,0,0,0.08);
+    top: 16px; right: 16px;
+    background: rgba(255,255,255,0.85);
     border: none;
     border-radius: 50px;
-    padding: 6px 14px;
+    padding: 7px 16px;
     font-size: 0.8rem;
     cursor: pointer;
     color: #555;
     font-family: 'Jeju Gothic', sans-serif;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
-  .back-btn:hover { background: rgba(0,0,0,0.15); }
+  .back-btn:hover { background: rgba(255,255,255,1); }
 
   .s-card.empty  { background: var(--card-blue);  color: transparent; }
   .s-card.empty-peach { background: var(--card-peach); color: transparent; }
