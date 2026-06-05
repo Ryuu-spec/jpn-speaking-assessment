@@ -243,13 +243,15 @@
     overflow: hidden;
     background: transparent;
     margin-bottom: 0;
+    height: 240px;
   }
 
   .map-wrapper img {
     width: 100%;
-    height: auto;
+    height: 240px;
+    object-fit: cover;
+    object-position: center 30%;
     display: block;
-    /* 검정 배경을 연한 파란 배경색에 녹이기 */
     mix-blend-mode: multiply;
     opacity: 0.75;
     border-radius: 12px;
