@@ -26,11 +26,14 @@
     font-family: 'Jeju Gothic', sans-serif;
     background: #deedf5;
     min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 16px;
+    box-sizing: border-box;
   }
 
   /* ── SETUP SCREEN ── */
@@ -211,27 +214,28 @@
   #tool-screen {
     display: none;
     width: 100%;
-    max-width: 900px;
+    max-width: min(900px, calc(100vw - 32px));
   }
 
   .tool-card {
     background: var(--bg);
     border-radius: 24px;
-    padding: 22px 32px 20px;
+    padding: 18px 28px 18px;
     box-shadow: 0 8px 40px rgba(0,0,0,0.15);
     position: relative;
+    overflow: hidden;
   }
 
   .tool-title {
     font-family: 'Klee One', serif;
-    font-size: 1.8rem;
+    font-size: clamp(1.3rem, 3vw, 1.8rem);
     font-weight: 600;
     text-align: center;
     color: var(--title-text);
     background: var(--title-bg);
     padding: 12px 32px;
     border-radius: 50px;
-    margin-bottom: 18px;
+    margin: 6px 0 14px;
     letter-spacing: 0.12em;
   }
 
@@ -242,7 +246,7 @@
     border-radius: 12px;
     overflow: hidden;
     background: transparent;
-    margin-bottom: 0;
+    margin-bottom: -16px;
   }
 
   .map-wrapper img {
@@ -252,7 +256,7 @@
     mix-blend-mode: multiply;
     opacity: 0.75;
     border-radius: 12px;
-    max-height: 420px;
+    max-height: clamp(200px, 40vh, 360px);
     object-fit: contain;
   }
 
@@ -271,7 +275,7 @@
   .divider {
     height: 2px;
     background: var(--divider);
-    margin: 0 -32px;
+    margin: 0 -28px;
     opacity: 0.45;
   }
 
@@ -280,19 +284,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 18px 0 16px;
+    gap: clamp(6px, 1.2vw, 12px);
+    padding: 16px 0 14px;
     flex-wrap: wrap;
   }
 
   .s-card {
     border-radius: 14px;
-    padding: 0 22px;
+    padding: 0 clamp(12px, 2vw, 22px);
     font-weight: 600;
-    font-size: 2.4rem;
+    font-size: clamp(1.4rem, 3.5vw, 2.4rem);
     line-height: 1;
-    min-width: 80px;
-    height: 80px;
+    min-width: clamp(56px, 8vw, 80px);
+    height: clamp(56px, 9vw, 80px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -309,18 +313,18 @@
     background: var(--card-peach);
     color: var(--text-dark);
     font-family: 'Klee One', serif;
-    font-size: 2.6rem;
+    font-size: clamp(1.5rem, 3.8vw, 2.6rem);
   }
 
   .s-card.ampm {
-    font-size: 1.6rem;
-    padding: 0 16px;
+    font-size: clamp(1rem, 2.2vw, 1.6rem);
+    padding: 0 clamp(10px, 1.5vw, 16px);
     font-family: 'Jeju Gothic', sans-serif;
   }
 
   .s-particle {
     font-family: 'Klee One', serif;
-    font-size: 2.2rem;
+    font-size: clamp(1.3rem, 3vw, 2.2rem);
     font-weight: 600;
     color: var(--text-dark);
     letter-spacing: 0.05em;
@@ -334,14 +338,15 @@
   }
   .s-colon span {
     display: block;
-    width: 8px; height: 8px;
+    width: clamp(5px, 0.8vw, 8px);
+    height: clamp(5px, 0.8vw, 8px);
     background: var(--text-dark);
     border-radius: 50%;
   }
 
   .s-desu {
     font-family: 'Klee One', serif;
-    font-size: 2.2rem;
+    font-size: clamp(1.3rem, 3vw, 2.2rem);
     font-weight: 600;
     color: var(--text-dark);
   }
