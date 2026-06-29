@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>jphone-tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Jeju+Gothic&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #eaf3f9;
+    --card-blue: #b8d4ee;
+    --card-peach: #f5c9a8;
+    --title-bg: #2d2d2d;
+    --title-text: #ffffff;
+    --btn-bg: #f5c040;
+    --btn-text: #2d2d2d;
+    --text-dark: #2d2d2d;
+    --divider: #a0b8cc;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Jeju Gothic', sans-serif;
+    background: #deedf5;
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    box-sizing: border-box;
+  }
+
+  /* ── SETUP SCREEN ── */
+  #setup-screen {
+    background: var(--bg);
+    border-radius: 24px;
+    padding: 40px;
+    width: 100%;
+    max-width: 560px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+  }
+
+  #setup-screen h1 {
+    font-family: 'Klee One', serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--title-text);
+    background: var(--title-bg);
+    padding: 14px 24px;
+    border-radius: 50px;
+    margin-bottom: 32px;
+    letter-spacing: 0.08em;
+  }
+
+  .setup-section { margin-bottom: 24px; }
+
+  .setup-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #666;
+    margin-bottom: 8px;
+    letter-spacing: 0.06em;
+  }
+
+  .num-mode-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .num-mode-group input[type="radio"] { display: none; }
+  .num-mode-group label {
+    display: block;
+    background: white;
+    border: 2px solid var(--card-blue);
+    border-radius: 14px;
+    padding: 14px 18px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-family: 'Jeju Gothic', sans-serif;
+    color: #888;
+    transition: all 0.2s;
+  }
+  .num-mode-group label .example {
+    display: block;
+    font-size: 0.8rem;
+    color: #bbb;
+    margin-top: 3px;
+    font-family: 'Klee One', serif;
+  }
+  .num-mode-group input[type="radio"]:checked + label {
+    background: #e8f2fa;
+    border-color: #4a8fc5;
+    color: var(--text-dark);
+    font-weight: 700;
+  }
+  .num-mode-group input[type="radio"]:checked + label .example {
+    color: #4a8fc5;
+  }
+
+  #mode-area:checked + label {
+    border-radius: 14px 14px 0 0;
+  }
+
+  .area-input-wrap {
+    display: none;
+    margin-top: -8px;
+    padding: 10px 14px;
+    background: #e8f2fa;
+    border: 2px solid #4a8fc5;
+    border-top: none;
+    border-radius: 0 0 14px 14px;
+  }
+  .area-input-wrap input {
+    width: 100%;
+    border: 1.5px solid #b8d4ee;
+    border-radius: 10px;
+    padding: 9px 14px;
+    font-size: 0.95rem;
+    font-family: 'Jeju Gothic', sans-serif;
+    color: var(--text-dark);
+    background: white;
+    outline: none;
+  }
+  .area-input-wrap input:focus { border-color: #4a8fc5; }
+  .area-input-wrap .area-hint {
+    font-size: 0.75rem;
+    color: #4a8fc5;
+    margin-top: 5px;
+    font-family: 'Klee One', serif;
+  }
+
+  /* ── TIMER SETUP ── */
+  .timer-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border: 2px solid var(--card-blue);
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin-bottom: 8px;
+  }
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #ccc;
+    border-radius: 26px;
+    transition: 0.3s;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.3s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .switch input:checked + .slider { background: #4a8fc5; }
+  .switch input:checked + .slider:before { transform: translateX(22px); }
+
+  .toggle-text {
+    font-size: 0.92rem;
+    color: #888;
+    font-family: 'Jeju Gothic', sans-serif;
+    transition: color 0.2s;
+  }
+  .toggle-text.active { color: var(--text-dark); font-weight: 700; }
+
+  .timer-time-inputs {
+    display: none;
+    background: #e8f2fa;
+    border: 2px solid #4a8fc5;
+    border-top: none;
+    border-radius: 0 0 14px 14px;
+    padding: 14px 18px;
+    margin-top: -8px;
+  }
+
+  .timer-toggle-row.timer-on {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-color: #4a8fc5;
+    background: #e8f2fa;
+  }
+
+  .time-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .time-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .time-field input[type="number"] {
+    width: 72px;
+    border: 1.5px solid #b8d4ee;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: 'Jeju Gothic', sans-serif;
+    color: var(--text-dark);
+    background: white;
+    outline: none;
+    text-align: center;
+    -moz-appearance: textfield;
+  }
+  .time-field input[type="number"]::-webkit-outer-spin-button,
+  .time-field input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .time-field input[type="number"]:focus { border-color: #4a8fc5; }
+
+  .time-unit {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #4a8fc5;
+    font-family: 'Jeju Gothic', sans-serif;
+  }
+
+  .time-colon {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #4a8fc5;
+    padding: 0 2px;
+  }
+
+  .timer-hint {
+    font-size: 0.75rem;
+    color: #4a8fc5;
+    margin-top: 8px;
+    font-family: 'Klee One', serif;
+  }
+
+  .start-btn {
+    width: 100%;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: none;
+    border-radius: 50px;
+    padding: 16px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Jeju Gothic', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 8px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 16px rgba(245,192,64,0.4);
+  }
+  .start-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(245,192,64,0.5); }
+
+  /* ── TOOL SCREEN ── */
+  #tool-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #deedf5;
+    padding: 12px;
+    overflow-y: auto;
+  }
+
+  .tool-card {
+    background: #deedf5;
+    border-radius: 24px;
+    padding: 16px 28px 28px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 24px);
+    max-width: min(1000px, calc(100vw - 24px));
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .back-btn {
+    align-self: flex-start;
+    background: rgba(255,255,255,0.85);
+    border: none;
+    border-radius: 50px;
+    padding: 7px 16px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    color: #555;
+    font-family: 'Jeju Gothic', sans-serif;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 10px;
+  }
+  .back-btn:hover { background: rgba(255,255,255,1); }
+
+  /* ── TIMER DISPLAY ── */
+  .timer-display {
+    display: none;
+    position: absolute;
+    top: 16px;
+    right: 28px;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 1.5px solid #e04c4c;
+    border-radius: 50px;
+    padding: 8px 20px;
+    min-width: 90px;
+  }
+
+  .timer-inner-text {
+    font-family: 'Jeju Gothic', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #e04c4c;
+    white-space: nowrap;
+    letter-spacing: 0.06em;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.75; transform: scale(0.96); }
+  }
+  .timer-display.expired {
+    animation: pulse 0.7s ease-in-out infinite;
+  }
+
+  /* TOP ROW: phone image + title */
+  .top-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-top: 36px;
+    flex-shrink: 0;
+  }
+
+  .phone-img {
+    width: clamp(90px, 13vw, 170px);
+    flex-shrink: 0;
+    object-fit: contain;
+  }
+
+  .tool-title {
+    font-family: 'Klee One', serif;
+    font-size: clamp(1.3rem, 3.2vw, 2.1rem);
+    font-weight: 700;
+    text-align: center;
+    color: #ffffff;
+    background: var(--title-bg);
+    padding: 26px 40px;
+    border-radius: 50px;
+    letter-spacing: 0.12em;
+    flex: 1;
+    text-shadow: 0 0 1px rgba(255,255,255,0.6);
+  }
+
+  /* PHONE NUMBER DISPLAY */
+  .phone-display-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 0 16px 8%;
+  }
+
+  .phone-number {
+    font-family: 'Jeju Gothic', sans-serif;
+    font-size: clamp(1.4rem, 4.5vw, 4.2rem);
+    font-weight: 700;
+    color: var(--text-dark);
+    letter-spacing: 0.1em;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .phone-number .desu {
+    font-family: 'Klee One', serif;
+    font-weight: 600;
+  }
+
+  .p-hidden { visibility: hidden; }
+
+  @keyframes flipIn {
+    0%   { transform: rotateX(90deg) scale(0.85); opacity: 0; }
+    100% { transform: rotateX(0deg)  scale(1);    opacity: 1; }
+  }
+  .flip { animation: flipIn 0.38s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+  /* CLICK BUTTON */
+  .click-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: none;
+    border-radius: 50px;
+    padding: 15px 44px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Jeju Gothic', sans-serif;
+    margin: 0 auto;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 16px rgba(245,192,64,0.4);
+  }
+  .click-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(245,192,64,0.5); }
+  .click-btn:active { transform: translateY(0); }
+
+  .btn-icon {
+    width: 28px; height: 28px;
+    border: 2.5px solid var(--btn-text);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .credits {
+    text-align: right;
+    font-size: 0.72rem;
+    color: #999;
+    font-family: 'Jeju Gothic', sans-serif;
+    margin-top: 16px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ SETUP SCREEN ══════════════ -->
+<div id="setup-screen">
+  <h1>でんわばんごうは　なんばんですか。</h1>
+
+  <div class="setup-section">
+    <div class="setup-label">📞 번호 형식</div>
+    <div class="num-mode-group">
+      <input type="radio" name="num-mode" id="mode-010" value="010" checked>
+      <label for="mode-010">
+        010 고정
+        <span class="example">010－XXXX－XXXX</span>
+      </label>
+      <input type="radio" name="num-mode" id="mode-area" value="area">
+      <label for="mode-area">
+        지역번호 선택 / 직접 입력
+        <span class="example">02, 031, 051 … 또는 직접 입력 － XXXX－XXXX</span>
+      </label>
+      <div class="area-input-wrap" id="area-input-wrap">
+        <input type="text" id="area-code-input" list="area-code-list" placeholder="지역번호 입력 (예: 02, 031)">
+        <datalist id="area-code-list">
+          <option value="02">서울</option>
+          <option value="031">경기</option>
+          <option value="032">인천</option>
+          <option value="033">강원</option>
+          <option value="041">충남</option>
+          <option value="042">대전</option>
+          <option value="043">충북</option>
+          <option value="051">부산</option>
+          <option value="052">울산</option>
+          <option value="053">대구</option>
+          <option value="054">경북</option>
+          <option value="055">경남</option>
+          <option value="061">전남</option>
+          <option value="062">광주</option>
+          <option value="063">전북</option>
+          <option value="064">제주</option>
+        </datalist>
+        <div class="area-hint">빈칸이면 목록에서 랜덤 선택</div>
+      </div>
+      <input type="radio" name="num-mode" id="mode-random" value="random">
+      <label for="mode-random">
+        완전 랜덤
+        <span class="example">0XX－XXXX－XXXX</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="setup-section">
+    <div class="setup-label">⏱ 타이머 설정</div>
+    <div class="timer-toggle-row" id="timer-toggle-row">
+      <label class="switch">
+        <input type="checkbox" id="timer-enabled" onchange="toggleTimerInputs()">
+        <span class="slider"></span>
+      </label>
+      <span class="toggle-text" id="toggle-text">타이머 사용 안 함</span>
+    </div>
+    <div class="timer-time-inputs" id="timer-time-inputs">
+      <div class="time-row">
+        <div class="time-field">
+          <input type="number" id="timer-min" min="0" max="59" value="0">
+          <span class="time-unit">분</span>
+        </div>
+        <span class="time-colon">:</span>
+        <div class="time-field">
+          <input type="number" id="timer-sec" min="0" max="59" value="30">
+          <span class="time-unit">초</span>
+        </div>
+      </div>
+      <div class="timer-hint">번호가 표시될 때마다 타이머가 다시 시작됩니다</div>
+    </div>
+  </div>
+
+  <button class="start-btn" onclick="startTool()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21"/></svg>
+    시작하기
+  </button>
+</div>
+
+<!-- ══════════════ TOOL SCREEN ══════════════ -->
+<div id="tool-screen">
+  <div class="tool-card">
+    <button class="back-btn" onclick="goBack()">← 설정으로</button>
+
+    <!-- TIMER DISPLAY (top-right) -->
+    <div class="timer-display" id="timer-display">
+      <span class="timer-inner-text" id="timer-text">0:30</span>
+    </div>
+
+    <!-- TOP ROW: phone image + title -->
+    <div class="top-row">
+      <img src="./phone_hand_nobg.png" class="phone-img" alt="">
+      <div class="tool-title">でんわばんごうは　なんばんですか。</div>
+    </div>
+
+    <!-- PHONE NUMBER -->
+    <div class="phone-display-area">
+      <div class="phone-number">
+        <span id="p-prefix"></span><span id="p-sep">－</span><span id="p-mid" class="p-hidden">0000</span><span id="p-sep2">－</span><span id="p-last" class="p-hidden">0000</span> <span class="desu" id="p-desu">です。</span>
+      </div>
+    </div>
+
+    <button class="click-btn" onclick="nextQuestion()">
+      <div class="btn-icon">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1,4 1,10 7,10"/><path d="M3.51,15a9,9,0,1,0,.49-4.95"/></svg>
+      </div>
+      ▶　Click here
+    </button>
+
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let numMode = '010';
+let fixedPrefix = '010';
+
+const areaCodes = ['02', '031', '051', '052', '053', '032', '042', '062', '033', '041', '043', '054', '055', '061', '063', '064'];
+
+// ── TIMER STATE ──
+let timerEnabled = false;
+let timerTotal = 30;
+let timerStart = null;
+let timerInterval = null;
+
+// 지역번호 입력창 표시/숨김
+document.querySelectorAll('input[name="num-mode"]').forEach(r => {
+  r.addEventListener('change', () => {
+    document.getElementById('area-input-wrap').style.display =
+      document.getElementById('mode-area').checked ? 'block' : 'none';
+  });
+});
+
+function toggleTimerInputs() {
+  const on = document.getElementById('timer-enabled').checked;
+  const inputs = document.getElementById('timer-time-inputs');
+  const row = document.getElementById('timer-toggle-row');
+  const text = document.getElementById('toggle-text');
+  inputs.style.display = on ? 'block' : 'none';
+  row.classList.toggle('timer-on', on);
+  text.textContent = on ? '타이머 사용 중' : '타이머 사용 안 함';
+  text.classList.toggle('active', on);
+}
+
+// ── HELPERS ──
+function rand4() { return String(Math.floor(Math.random() * 10000)).padStart(4, '0'); }
+function rand2() { return String(Math.floor(Math.random() * 100)).padStart(2, '0'); }
+
+function generateNumber() {
+  if (numMode === 'random') {
+    return ['0' + rand2(), rand4(), rand4()];
+  }
+  return [fixedPrefix, rand4(), rand4()];
+}
+
+// ── SETUP ──
+function startTool() {
+  numMode = document.querySelector('input[name="num-mode"]:checked').value;
+  if (numMode === '010') {
+    fixedPrefix = '010';
+  } else if (numMode === 'area') {
+    const inputVal = document.getElementById('area-code-input').value.trim();
+    fixedPrefix = inputVal || areaCodes[Math.floor(Math.random() * areaCodes.length)];
+  } else {
+    fixedPrefix = null;
+  }
+
+  timerEnabled = document.getElementById('timer-enabled').checked;
+  if (timerEnabled) {
+    const m = parseInt(document.getElementById('timer-min').value) || 0;
+    const s = parseInt(document.getElementById('timer-sec').value) || 0;
+    timerTotal = m * 60 + s;
+    if (timerTotal <= 0) timerTotal = 30;
+  }
+
+  const timerDisplay = document.getElementById('timer-display');
+  if (timerEnabled) {
+    timerDisplay.style.display = 'flex';
+    setTimerDisplay(timerTotal, timerTotal);
+  } else {
+    timerDisplay.style.display = 'none';
+    stopTimer();
+  }
+
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('tool-screen').style.display  = 'block';
+  resetDisplay();
+}
+
+function goBack() {
+  stopTimer();
+  document.getElementById('tool-screen').style.display  = 'none';
+  document.getElementById('setup-screen').style.display = 'block';
+}
+
+// ── TIMER ──
+function startTimer() {
+  if (!timerEnabled) return;
+  stopTimer();
+  timerStart = Date.now();
+  setTimerDisplay(timerTotal, timerTotal);
+  timerInterval = setInterval(() => {
+    const elapsed = (Date.now() - timerStart) / 1000;
+    const remaining = Math.max(0, timerTotal - elapsed);
+    setTimerDisplay(remaining, timerTotal);
+    if (remaining <= 0) stopTimer();
+  }, 100);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function setTimerDisplay(remaining, total) {
+  const el = document.getElementById('timer-display');
+  const textEl = document.getElementById('timer-text');
+
+  const mins = Math.floor(remaining / 60);
+  const secs = Math.ceil(remaining % 60);
+  const displaySecs = secs === 60 ? 59 : secs;
+  textEl.textContent = mins + ':' + String(displaySecs).padStart(2, '0');
+
+  el.className = 'timer-display';
+  if (remaining <= 0) el.classList.add('expired');
+  el.style.display = 'flex';
+}
+
+// ── DISPLAY ──
+function resetDisplay() {
+  document.getElementById('p-prefix').textContent = numMode === 'random' ? '' : fixedPrefix;
+  document.getElementById('p-sep').className  = numMode === 'random' ? 'p-hidden' : '';
+  const mid = document.getElementById('p-mid');
+  mid.textContent = '0000'; mid.className = 'p-hidden';
+  const last = document.getElementById('p-last');
+  last.textContent = '0000'; last.className = 'p-hidden';
+}
+
+function animateSpan(id, text, delay) {
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = 'flip';
+    el.addEventListener('animationend', () => { el.className = ''; }, { once: true });
+  }, delay);
+}
+
+function nextQuestion() {
+  const [p1, p2, p3] = generateNumber();
+  if (numMode === 'random') {
+    document.getElementById('p-prefix').textContent = '';
+    document.getElementById('p-sep').className = 'p-hidden';
+    animateSpan('p-mid', p1 + '－' + p2, 0);
+  } else {
+    document.getElementById('p-prefix').textContent = fixedPrefix;
+    document.getElementById('p-sep').className = '';
+    animateSpan('p-mid', p2, 0);
+  }
+  animateSpan('p-last', p3, 80);
+  startTimer();
+}
+</script>
+</body>
+</html>
