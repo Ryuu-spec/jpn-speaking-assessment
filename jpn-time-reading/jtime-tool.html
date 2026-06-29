@@ -187,6 +187,16 @@
   .sub-toggle.enabled { opacity: 1; pointer-events: all; border-color: var(--card-blue) !important; }
   .sub-toggle span { color: #888 !important; font-size: 0.85rem !important; }
 
+  .sub-sub-toggle {
+    margin-left: 40px;
+    opacity: 0.4;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    border-color: #ddd !important;
+  }
+  .sub-sub-toggle.enabled { opacity: 1; pointer-events: all; border-color: var(--card-blue) !important; }
+  .sub-sub-toggle span { color: #888 !important; font-size: 0.85rem !important; }
+
   .start-btn {
     width: 100%;
     background: var(--btn-bg);
@@ -472,13 +482,33 @@
     </div>
 
     <div class="toggle-row">
+      <span>분 포함</span>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-include-min" checked onchange="updateSubToggles()">
+        <div class="toggle-slider"></div>
+      </label>
+    </div>
+
+    <div class="toggle-row sub-toggle" id="sub-min-unit" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+      <span>분 단위</span>
+      <div class="time-mode-group" style="width: 100%;">
+        <input type="radio" name="min-unit" id="min-10" value="10" onchange="updateSubToggles()">
+        <label for="min-10">10분 단위</label>
+        <input type="radio" name="min-unit" id="min-5" value="5" onchange="updateSubToggles()">
+        <label for="min-5">5분 단위</label>
+        <input type="radio" name="min-unit" id="min-1" value="1" checked onchange="updateSubToggles()">
+        <label for="min-1">1분 단위</label>
+      </div>
+    </div>
+
+    <div class="toggle-row sub-toggle" id="row-irr-m">
       <span>불규칙 읽기 보장 (분)</span>
       <label class="toggle">
         <input type="checkbox" id="toggle-irr-m" onchange="updateSubToggles()">
         <div class="toggle-slider"></div>
       </label>
     </div>
-    <div class="toggle-row sub-toggle" id="sub-irr-m">
+    <div class="toggle-row sub-sub-toggle" id="sub-irr-m">
       <span>1·3·4·6·8·10분 중 반드시 포함</span>
       <span style="font-size:0.78rem;color:#bbb">자동 적용</span>
     </div>
@@ -509,7 +539,7 @@
       <div class="s-particle">は　いま</div>
       <div class="s-card blue ampm empty" id="card-ampm">　</div>
       <div class="s-card peach empty-peach" id="card-h">　</div>
-      <div class="s-colon"><span></span><span></span></div>
+      <div class="s-colon" id="card-colon"><span></span><span></span></div>
       <div class="s-card peach empty-peach" id="card-m">　　</div>
       <div class="s-desu">です。</div>
     </div>
@@ -529,8 +559,10 @@
 // ── STATE ──
 let cities = ['한국','일본','중국','미국','영국','프랑스'];
 let timeMode = 'ampm'; // 'ampm' | 'none' | '24h'
-let irrHour  = false;
-let irrMin   = false;
+let irrHour   = false;
+let irrMin    = false;
+let includeMin = true;
+let minUnit   = '1'; // '10' | '5' | '1'
 let currentCity = null;
 
 const irrHours = [4, 7, 9];
@@ -557,17 +589,29 @@ document.getElementById('city-input').addEventListener('keydown', e => {
 });
 
 function updateSubToggles() {
-  document.getElementById('sub-irr-h').classList.toggle('enabled', document.getElementById('toggle-irr-h').checked);
-  document.getElementById('sub-irr-m').classList.toggle('enabled', document.getElementById('toggle-irr-m').checked);
+  const irrHOn      = document.getElementById('toggle-irr-h').checked;
+  const includeMinOn = document.getElementById('toggle-include-min').checked;
+  const minUnitVal  = document.querySelector('input[name="min-unit"]:checked')?.value || '1';
+  const is1Min      = minUnitVal === '1';
+  const irrMOn      = document.getElementById('toggle-irr-m').checked;
+
+  document.getElementById('sub-irr-h').classList.toggle('enabled', irrHOn);
+  document.getElementById('sub-min-unit').classList.toggle('enabled', includeMinOn);
+  document.getElementById('row-irr-m').classList.toggle('enabled', includeMinOn && is1Min);
+  document.getElementById('sub-irr-m').classList.toggle('enabled', includeMinOn && is1Min && irrMOn);
 }
 
 function startTool() {
   if (cities.length === 0) { alert('도시를 한 개 이상 입력해주세요.'); return; }
-  timeMode = document.querySelector('input[name="time-mode"]:checked').value;
-  irrHour  = document.getElementById('toggle-irr-h').checked;
-  irrMin   = document.getElementById('toggle-irr-m').checked;
+  timeMode   = document.querySelector('input[name="time-mode"]:checked').value;
+  irrHour    = document.getElementById('toggle-irr-h').checked;
+  irrMin     = document.getElementById('toggle-irr-m').checked;
+  includeMin = document.getElementById('toggle-include-min').checked;
+  minUnit    = document.querySelector('input[name="min-unit"]:checked').value;
 
-  document.getElementById('card-ampm').style.display = timeMode === 'ampm' ? '' : 'none';
+  document.getElementById('card-ampm').style.display  = timeMode === 'ampm' ? '' : 'none';
+  document.getElementById('card-colon').style.display = includeMin ? '' : 'none';
+  document.getElementById('card-m').style.display     = includeMin ? '' : 'none';
   document.getElementById('setup-screen').style.display = 'none';
   document.getElementById('tool-screen').style.display  = 'block';
 
@@ -599,6 +643,8 @@ function pickHour() {
 }
 
 function pickMinute() {
+  if (minUnit === '10') return [0, 10, 20, 30, 40, 50][Math.floor(Math.random() * 6)];
+  if (minUnit === '5')  return Math.floor(Math.random() * 12) * 5;
   if (irrMin && Math.random() < 0.55)
     return irrMins[Math.floor(Math.random() * irrMins.length)];
   return Math.floor(Math.random() * 60);
@@ -612,7 +658,9 @@ function resetCards() {
   setCard('card-ampm', '　',   's-card blue ampm empty');
   setCard('card-h',   '　',   's-card peach empty-peach');
   setCard('card-m',   '　　', 's-card peach empty-peach');
-  document.getElementById('card-ampm').style.display = timeMode === 'ampm' ? '' : 'none';
+  document.getElementById('card-ampm').style.display  = timeMode === 'ampm' ? '' : 'none';
+  document.getElementById('card-colon').style.display = includeMin ? '' : 'none';
+  document.getElementById('card-m').style.display     = includeMin ? '' : 'none';
 }
 
 function setCard(id, text, cls) {
@@ -625,12 +673,12 @@ function nextQuestion() {
   const city   = pickCity();
   currentCity  = city;
   const hour   = pickHour();
-  const minute = pickMinute();
-  const isAM = Math.random() < 0.5;
-  animateCard('card-city', city,                          's-card blue',      0);
+  const minute = includeMin ? pickMinute() : 0;
+  const isAM   = Math.random() < 0.5;
+  animateCard('card-city', city, 's-card blue', 0);
   if (timeMode === 'ampm') animateCard('card-ampm', isAM ? '오전' : '오후', 's-card blue ampm', 80);
-  animateCard('card-h',    String(hour),                  's-card peach',     160);
-  animateCard('card-m',    pad2(minute),                  's-card peach',     240);
+  animateCard('card-h', String(hour), 's-card peach', 160);
+  if (includeMin) animateCard('card-m', pad2(minute), 's-card peach', 240);
 }
 
 function animateCard(id, text, cls, delay) {
