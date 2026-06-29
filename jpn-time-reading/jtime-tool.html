@@ -393,6 +393,14 @@
     font-family: 'Jeju Gothic', sans-serif;
   }
 
+  .tool-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 10px;
+  }
+
   .back-btn {
     display: inline-block;
     background: rgba(255,255,255,0.85);
@@ -404,7 +412,7 @@
     color: #555;
     font-family: 'Jeju Gothic', sans-serif;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    margin-bottom: 10px;
+    flex-shrink: 0;
   }
   .back-btn:hover { background: rgba(255,255,255,1); }
 
@@ -436,6 +444,115 @@
     background: #4a8fc5;
     color: white;
     font-weight: 700;
+  }
+
+  /* ── TIMER WIDGET (tool screen) ── */
+  #timer-widget {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    border-radius: 50px;
+    padding: 6px 10px 6px 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.11);
+    border: 2px solid #e0e0e0;
+    flex-shrink: 0;
+  }
+
+  #timer-display {
+    font-size: clamp(1rem, 2.5vw, 1.35rem);
+    font-weight: 700;
+    color: #5b3fd4;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    font-family: 'Courier New', monospace;
+    min-width: 3.5ch;
+  }
+  #timer-display.expired { color: #e05a2b; animation: blink 0.8s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0.3; } }
+
+  .timer-pause-btn {
+    background: #2d2d2d;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 4px 13px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    font-family: 'Jeju Gothic', sans-serif;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+  .timer-pause-btn:hover { background: #555; }
+  .timer-pause-btn.paused { background: #4a8fc5; }
+
+  .timer-reset-btn {
+    background: #f0f0f0;
+    border: none;
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .timer-reset-btn:hover { background: #ddd; }
+
+  /* ── TIMER PICKER (setup screen) ── */
+  .timer-picker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .timer-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .timer-unit-btn {
+    background: #e8f0f8;
+    border: none;
+    border-radius: 6px;
+    width: 42px;
+    height: 26px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    color: #4a8fc5;
+    font-weight: 700;
+    transition: background 0.15s;
+  }
+  .timer-unit-btn:hover { background: #d0e4f5; }
+
+  .timer-unit-display {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #2d2d2d;
+    font-family: 'Courier New', monospace;
+    min-width: 54px;
+    text-align: center;
+    background: #f5f8fc;
+    border-radius: 8px;
+    padding: 4px 0;
+  }
+
+  .timer-unit-label {
+    font-size: 0.75rem;
+    color: #999;
+    font-family: 'Jeju Gothic', sans-serif;
+  }
+
+  .timer-picker-colon {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #aaa;
+    margin-top: -14px;
   }
 </style>
 </head>
@@ -514,6 +631,37 @@
     </div>
   </div>
 
+  <div class="setup-section">
+    <div class="setup-label">⏱️ 타이머 설정</div>
+
+    <div class="toggle-row">
+      <span>타이머 사용</span>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-timer" onchange="updateSubToggles()">
+        <div class="toggle-slider"></div>
+      </label>
+    </div>
+
+    <div class="toggle-row sub-toggle" id="sub-timer-time" style="flex-direction: column; align-items: flex-start; gap: 12px;">
+      <span>타이머 시간</span>
+      <div class="timer-picker">
+        <div class="timer-unit">
+          <button class="timer-unit-btn" onclick="adjustTimerMin(1)">▲</button>
+          <div class="timer-unit-display" id="timer-min-display">01</div>
+          <button class="timer-unit-btn" onclick="adjustTimerMin(-1)">▼</button>
+          <div class="timer-unit-label">분</div>
+        </div>
+        <div class="timer-picker-colon">:</div>
+        <div class="timer-unit">
+          <button class="timer-unit-btn" onclick="adjustTimerSec(1)">▲</button>
+          <div class="timer-unit-display" id="timer-sec-display">30</div>
+          <button class="timer-unit-btn" onclick="adjustTimerSec(-1)">▼</button>
+          <div class="timer-unit-label">초</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <button class="start-btn" onclick="startTool()">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21"/></svg>
     수행평가 시작
@@ -523,7 +671,15 @@
 <!-- ══════════════ TOOL SCREEN ══════════════ -->
 <div id="tool-screen">
   <div class="tool-card">
-    <button class="back-btn" onclick="goBack()">← 설정으로</button>
+    <div class="tool-top-row">
+      <button class="back-btn" onclick="goBack()">← 설정으로</button>
+      <div id="timer-widget" style="display:none;">
+        <span id="timer-display">00:00</span>
+        <button class="timer-pause-btn" id="timer-pause-btn" onclick="toggleTimerPause()">pause</button>
+        <button class="timer-reset-btn" onclick="resetTimer()" title="다시 시작">↺</button>
+      </div>
+    </div>
+
     <div class="tool-title">いま　なんじですか。</div>
 
     <!-- MAP -->
@@ -565,6 +721,14 @@ let includeMin = true;
 let minUnit   = '1'; // '10' | '5' | '1'
 let currentCity = null;
 
+// timer state
+let timerEnabled  = false;
+let timerInitMin  = 1;
+let timerInitSec  = 30;
+let timerRemaining = 0;
+let timerRunning  = false;
+let timerInterval = null;
+
 const irrHours = [4, 7, 9];
 const irrMins  = [1, 3, 4, 6, 8, 10];
 
@@ -589,29 +753,119 @@ document.getElementById('city-input').addEventListener('keydown', e => {
 });
 
 function updateSubToggles() {
-  const irrHOn      = document.getElementById('toggle-irr-h').checked;
+  const irrHOn       = document.getElementById('toggle-irr-h').checked;
   const includeMinOn = document.getElementById('toggle-include-min').checked;
-  const minUnitVal  = document.querySelector('input[name="min-unit"]:checked')?.value || '1';
-  const is1Min      = minUnitVal === '1';
-  const irrMOn      = document.getElementById('toggle-irr-m').checked;
+  const minUnitVal   = document.querySelector('input[name="min-unit"]:checked')?.value || '1';
+  const is1Min       = minUnitVal === '1';
+  const irrMOn       = document.getElementById('toggle-irr-m').checked;
+  const timerOn      = document.getElementById('toggle-timer').checked;
 
   document.getElementById('sub-irr-h').classList.toggle('enabled', irrHOn);
   document.getElementById('sub-min-unit').classList.toggle('enabled', includeMinOn);
   document.getElementById('row-irr-m').classList.toggle('enabled', includeMinOn && is1Min);
   document.getElementById('sub-irr-m').classList.toggle('enabled', includeMinOn && is1Min && irrMOn);
+  document.getElementById('sub-timer-time').classList.toggle('enabled', timerOn);
+}
+
+// ── TIMER ──
+function adjustTimerMin(delta) {
+  timerInitMin = Math.max(0, Math.min(30, timerInitMin + delta));
+  document.getElementById('timer-min-display').textContent = String(timerInitMin).padStart(2, '0');
+}
+
+function adjustTimerSec(delta) {
+  timerInitSec = ((timerInitSec + delta * 5) % 60 + 60) % 60;
+  document.getElementById('timer-sec-display').textContent = String(timerInitSec).padStart(2, '0');
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerRemaining = timerInitMin * 60 + timerInitSec;
+  timerRunning = true;
+  const display = document.getElementById('timer-display');
+  const pauseBtn = document.getElementById('timer-pause-btn');
+  display.classList.remove('expired');
+  pauseBtn.textContent = 'pause';
+  pauseBtn.classList.remove('paused');
+  updateTimerDisplay();
+  timerInterval = setInterval(tickTimer, 1000);
+}
+
+function tickTimer() {
+  if (timerRemaining > 0) {
+    timerRemaining--;
+    updateTimerDisplay();
+  } else {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('timer-display').classList.add('expired');
+    document.getElementById('timer-pause-btn').textContent = 'pause';
+    document.getElementById('timer-pause-btn').classList.remove('paused');
+  }
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerRemaining / 60);
+  const s = timerRemaining % 60;
+  document.getElementById('timer-display').textContent =
+    String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function toggleTimerPause() {
+  const btn = document.getElementById('timer-pause-btn');
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    btn.textContent = 'resume';
+    btn.classList.add('paused');
+  } else if (timerRemaining > 0) {
+    timerRunning = true;
+    timerInterval = setInterval(tickTimer, 1000);
+    btn.textContent = 'pause';
+    btn.classList.remove('paused');
+    document.getElementById('timer-display').classList.remove('expired');
+  }
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  document.getElementById('timer-display').classList.remove('expired');
+  document.getElementById('timer-pause-btn').textContent = 'pause';
+  document.getElementById('timer-pause-btn').classList.remove('paused');
+  timerRemaining = timerInitMin * 60 + timerInitSec;
+  updateTimerDisplay();
+  timerRunning = true;
+  timerInterval = setInterval(tickTimer, 1000);
 }
 
 function startTool() {
   if (cities.length === 0) { alert('도시를 한 개 이상 입력해주세요.'); return; }
-  timeMode   = document.querySelector('input[name="time-mode"]:checked').value;
-  irrHour    = document.getElementById('toggle-irr-h').checked;
-  irrMin     = document.getElementById('toggle-irr-m').checked;
-  includeMin = document.getElementById('toggle-include-min').checked;
-  minUnit    = document.querySelector('input[name="min-unit"]:checked').value;
+  timeMode    = document.querySelector('input[name="time-mode"]:checked').value;
+  irrHour     = document.getElementById('toggle-irr-h').checked;
+  irrMin      = document.getElementById('toggle-irr-m').checked;
+  includeMin  = document.getElementById('toggle-include-min').checked;
+  minUnit     = document.querySelector('input[name="min-unit"]:checked').value;
+  timerEnabled = document.getElementById('toggle-timer').checked;
 
   document.getElementById('card-ampm').style.display  = timeMode === 'ampm' ? '' : 'none';
   document.getElementById('card-colon').style.display = includeMin ? '' : 'none';
   document.getElementById('card-m').style.display     = includeMin ? '' : 'none';
+
+  const widget = document.getElementById('timer-widget');
+  if (timerEnabled) {
+    widget.style.display = '';
+    clearInterval(timerInterval);
+    timerRunning = false;
+    timerRemaining = timerInitMin * 60 + timerInitSec;
+    updateTimerDisplay();
+    document.getElementById('timer-display').classList.remove('expired');
+    document.getElementById('timer-pause-btn').textContent = 'pause';
+    document.getElementById('timer-pause-btn').classList.remove('paused');
+  } else {
+    widget.style.display = 'none';
+  }
+
   document.getElementById('setup-screen').style.display = 'none';
   document.getElementById('tool-screen').style.display  = 'block';
 
@@ -619,6 +873,8 @@ function startTool() {
 }
 
 function goBack() {
+  clearInterval(timerInterval);
+  timerRunning = false;
   document.getElementById('tool-screen').style.display  = 'none';
   document.getElementById('setup-screen').style.display = 'block';
 }
@@ -679,6 +935,7 @@ function nextQuestion() {
   if (timeMode === 'ampm') animateCard('card-ampm', isAM ? '오전' : '오후', 's-card blue ampm', 80);
   animateCard('card-h', String(hour), 's-card peach', 160);
   if (includeMin) animateCard('card-m', pad2(minute), 's-card peach', 240);
+  if (timerEnabled) resetTimer();
 }
 
 function animateCard(id, text, cls, delay) {
