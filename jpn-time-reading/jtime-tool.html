@@ -502,57 +502,50 @@
   }
   .timer-reset-btn:hover { background: #ddd; }
 
-  /* ── TIMER PICKER (setup screen) ── */
-  .timer-picker {
+  /* ── TIMER INPUT (setup screen) ── */
+  .timer-time-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    margin-top: 4px;
   }
 
-  .timer-unit {
+  .timer-time-field {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 3px;
+    gap: 6px;
   }
 
-  .timer-unit-btn {
-    background: #e8f0f8;
-    border: none;
-    border-radius: 6px;
-    width: 42px;
-    height: 26px;
-    cursor: pointer;
-    font-size: 0.78rem;
-    color: #4a8fc5;
+  .timer-time-field input[type="number"] {
+    width: 72px;
+    border: 1.5px solid var(--card-blue);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 1.1rem;
     font-weight: 700;
-    transition: background 0.15s;
-  }
-  .timer-unit-btn:hover { background: #d0e4f5; }
-
-  .timer-unit-display {
-    font-size: 1.7rem;
-    font-weight: 700;
-    color: #2d2d2d;
-    font-family: 'Courier New', monospace;
-    min-width: 54px;
+    font-family: 'Jeju Gothic', sans-serif;
+    color: var(--text-dark);
+    background: white;
+    outline: none;
     text-align: center;
-    background: #f5f8fc;
-    border-radius: 8px;
-    padding: 4px 0;
+    -moz-appearance: textfield;
   }
+  .timer-time-field input[type="number"]::-webkit-outer-spin-button,
+  .timer-time-field input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .timer-time-field input[type="number"]:focus { border-color: #4a8fc5; }
 
-  .timer-unit-label {
-    font-size: 0.75rem;
-    color: #999;
+  .timer-time-unit {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #4a8fc5;
     font-family: 'Jeju Gothic', sans-serif;
   }
 
-  .timer-picker-colon {
-    font-size: 1.9rem;
+  .timer-time-colon {
+    font-size: 1.4rem;
     font-weight: 700;
-    color: #aaa;
-    margin-top: -14px;
+    color: #4a8fc5;
+    padding: 0 2px;
   }
 </style>
 </head>
@@ -642,21 +635,17 @@
       </label>
     </div>
 
-    <div class="toggle-row sub-toggle" id="sub-timer-time" style="flex-direction: column; align-items: flex-start; gap: 12px;">
+    <div class="toggle-row sub-toggle" id="sub-timer-time" style="flex-direction: column; align-items: flex-start; gap: 10px;">
       <span>타이머 시간</span>
-      <div class="timer-picker">
-        <div class="timer-unit">
-          <button class="timer-unit-btn" onclick="adjustTimerMin(1)">▲</button>
-          <div class="timer-unit-display" id="timer-min-display">01</div>
-          <button class="timer-unit-btn" onclick="adjustTimerMin(-1)">▼</button>
-          <div class="timer-unit-label">분</div>
+      <div class="timer-time-row">
+        <div class="timer-time-field">
+          <input type="number" id="timer-min" min="0" max="59" value="1">
+          <span class="timer-time-unit">분</span>
         </div>
-        <div class="timer-picker-colon">:</div>
-        <div class="timer-unit">
-          <button class="timer-unit-btn" onclick="adjustTimerSec(1)">▲</button>
-          <div class="timer-unit-display" id="timer-sec-display">30</div>
-          <button class="timer-unit-btn" onclick="adjustTimerSec(-1)">▼</button>
-          <div class="timer-unit-label">초</div>
+        <span class="timer-time-colon">:</span>
+        <div class="timer-time-field">
+          <input type="number" id="timer-sec" min="0" max="59" value="30">
+          <span class="timer-time-unit">초</span>
         </div>
       </div>
     </div>
@@ -723,8 +712,7 @@ let currentCity = null;
 
 // timer state
 let timerEnabled  = false;
-let timerInitMin  = 1;
-let timerInitSec  = 30;
+let timerTotal    = 30;
 let timerRemaining = 0;
 let timerRunning  = false;
 let timerInterval = null;
@@ -768,19 +756,9 @@ function updateSubToggles() {
 }
 
 // ── TIMER ──
-function adjustTimerMin(delta) {
-  timerInitMin = Math.max(0, Math.min(30, timerInitMin + delta));
-  document.getElementById('timer-min-display').textContent = String(timerInitMin).padStart(2, '0');
-}
-
-function adjustTimerSec(delta) {
-  timerInitSec = ((timerInitSec + delta * 5) % 60 + 60) % 60;
-  document.getElementById('timer-sec-display').textContent = String(timerInitSec).padStart(2, '0');
-}
-
 function startTimer() {
   clearInterval(timerInterval);
-  timerRemaining = timerInitMin * 60 + timerInitSec;
+  timerRemaining = timerTotal;
   timerRunning = true;
   const display = document.getElementById('timer-display');
   const pauseBtn = document.getElementById('timer-pause-btn');
@@ -833,7 +811,7 @@ function resetTimer() {
   document.getElementById('timer-display').classList.remove('expired');
   document.getElementById('timer-pause-btn').textContent = 'pause';
   document.getElementById('timer-pause-btn').classList.remove('paused');
-  timerRemaining = timerInitMin * 60 + timerInitSec;
+  timerRemaining = timerTotal;
   updateTimerDisplay();
   timerRunning = true;
   timerInterval = setInterval(tickTimer, 1000);
@@ -847,6 +825,12 @@ function startTool() {
   includeMin  = document.getElementById('toggle-include-min').checked;
   minUnit     = document.querySelector('input[name="min-unit"]:checked').value;
   timerEnabled = document.getElementById('toggle-timer').checked;
+  if (timerEnabled) {
+    const m = parseInt(document.getElementById('timer-min').value) || 0;
+    const s = parseInt(document.getElementById('timer-sec').value) || 0;
+    timerTotal = m * 60 + s;
+    if (timerTotal <= 0) timerTotal = 30;
+  }
 
   document.getElementById('card-ampm').style.display  = timeMode === 'ampm' ? '' : 'none';
   document.getElementById('card-colon').style.display = includeMin ? '' : 'none';
@@ -857,7 +841,7 @@ function startTool() {
     widget.style.display = '';
     clearInterval(timerInterval);
     timerRunning = false;
-    timerRemaining = timerInitMin * 60 + timerInitSec;
+    timerRemaining = timerTotal;
     updateTimerDisplay();
     document.getElementById('timer-display').classList.remove('expired');
     document.getElementById('timer-pause-btn').textContent = 'pause';

@@ -297,8 +297,15 @@
     position: relative;
   }
 
+  .tool-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 10px;
+  }
+
   .back-btn {
-    align-self: flex-start;
     background: rgba(255,255,255,0.85);
     border: none;
     border-radius: 50px;
@@ -308,41 +315,65 @@
     color: #555;
     font-family: 'Jeju Gothic', sans-serif;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    margin-bottom: 10px;
+    flex-shrink: 0;
   }
   .back-btn:hover { background: rgba(255,255,255,1); }
 
-  /* ── TIMER DISPLAY ── */
-  .timer-display {
-    display: none;
-    position: absolute;
-    top: 16px;
-    right: 28px;
+  /* ── TIMER WIDGET ── */
+  #timer-widget {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: white;
+    border-radius: 50px;
+    padding: 6px 10px 6px 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.11);
+    border: 2px solid #e0e0e0;
+    flex-shrink: 0;
+  }
+
+  #timer-display {
+    font-size: clamp(1rem, 2.5vw, 1.35rem);
+    font-weight: 700;
+    color: #5b3fd4;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    font-family: 'Courier New', monospace;
+    min-width: 3.5ch;
+  }
+  #timer-display.expired { color: #e05a2b; animation: blink 0.8s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0.3; } }
+
+  .timer-pause-btn {
+    background: #2d2d2d;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 4px 13px;
+    font-size: 0.72rem;
+    cursor: pointer;
+    font-family: 'Jeju Gothic', sans-serif;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+  .timer-pause-btn:hover { background: #555; }
+  .timer-pause-btn.paused { background: #4a8fc5; }
+
+  .timer-reset-btn {
+    background: #f0f0f0;
+    border: none;
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
     align-items: center;
     justify-content: center;
-    background: white;
-    border: 1.5px solid #e04c4c;
-    border-radius: 50px;
-    padding: 8px 20px;
-    min-width: 90px;
+    transition: background 0.2s;
+    flex-shrink: 0;
   }
-
-  .timer-inner-text {
-    font-family: 'Jeju Gothic', sans-serif;
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #e04c4c;
-    white-space: nowrap;
-    letter-spacing: 0.06em;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.75; transform: scale(0.96); }
-  }
-  .timer-display.expired {
-    animation: pulse 0.7s ease-in-out infinite;
-  }
+  .timer-reset-btn:hover { background: #ddd; }
 
   /* TOP ROW: phone image + title */
   .top-row {
@@ -529,11 +560,13 @@
 <!-- ══════════════ TOOL SCREEN ══════════════ -->
 <div id="tool-screen">
   <div class="tool-card">
-    <button class="back-btn" onclick="goBack()">← 설정으로</button>
-
-    <!-- TIMER DISPLAY (top-right) -->
-    <div class="timer-display" id="timer-display">
-      <span class="timer-inner-text" id="timer-text">0:30</span>
+    <div class="tool-top-row">
+      <button class="back-btn" onclick="goBack()">← 설정으로</button>
+      <div id="timer-widget" style="display:none;">
+        <span id="timer-display">00:00</span>
+        <button class="timer-pause-btn" id="timer-pause-btn" onclick="toggleTimerPause()">pause</button>
+        <button class="timer-reset-btn" onclick="resetTimer()" title="다시 시작">↺</button>
+      </div>
     </div>
 
     <!-- TOP ROW: phone image + title -->
@@ -567,9 +600,10 @@ let fixedPrefix = '010';
 const areaCodes = ['02', '031', '051', '052', '053', '032', '042', '062', '033', '041', '043', '054', '055', '061', '063', '064'];
 
 // ── TIMER STATE ──
-let timerEnabled = false;
-let timerTotal = 30;
-let timerStart = null;
+let timerEnabled  = false;
+let timerTotal    = 30;
+let timerRemaining = 0;
+let timerRunning  = false;
 let timerInterval = null;
 
 // 지역번호 입력창 표시/숨김
@@ -622,12 +656,16 @@ function startTool() {
     if (timerTotal <= 0) timerTotal = 30;
   }
 
-  const timerDisplay = document.getElementById('timer-display');
+  const widget = document.getElementById('timer-widget');
   if (timerEnabled) {
-    timerDisplay.style.display = 'flex';
-    setTimerDisplay(timerTotal, timerTotal);
+    widget.style.display = '';
+    timerRemaining = timerTotal;
+    updateTimerDisplay();
+    document.getElementById('timer-display').classList.remove('expired');
+    document.getElementById('timer-pause-btn').textContent = 'pause';
+    document.getElementById('timer-pause-btn').classList.remove('paused');
   } else {
-    timerDisplay.style.display = 'none';
+    widget.style.display = 'none';
     stopTimer();
   }
 
@@ -645,36 +683,68 @@ function goBack() {
 // ── TIMER ──
 function startTimer() {
   if (!timerEnabled) return;
-  stopTimer();
-  timerStart = Date.now();
-  setTimerDisplay(timerTotal, timerTotal);
-  timerInterval = setInterval(() => {
-    const elapsed = (Date.now() - timerStart) / 1000;
-    const remaining = Math.max(0, timerTotal - elapsed);
-    setTimerDisplay(remaining, timerTotal);
-    if (remaining <= 0) stopTimer();
-  }, 100);
+  clearInterval(timerInterval);
+  timerRemaining = timerTotal;
+  timerRunning = true;
+  document.getElementById('timer-display').classList.remove('expired');
+  document.getElementById('timer-pause-btn').textContent = 'pause';
+  document.getElementById('timer-pause-btn').classList.remove('paused');
+  updateTimerDisplay();
+  timerInterval = setInterval(tickTimer, 1000);
 }
 
-function stopTimer() {
-  if (timerInterval) {
+function tickTimer() {
+  if (timerRemaining > 0) {
+    timerRemaining--;
+    updateTimerDisplay();
+  } else {
     clearInterval(timerInterval);
-    timerInterval = null;
+    timerRunning = false;
+    document.getElementById('timer-display').classList.add('expired');
+    document.getElementById('timer-pause-btn').textContent = 'pause';
+    document.getElementById('timer-pause-btn').classList.remove('paused');
   }
 }
 
-function setTimerDisplay(remaining, total) {
-  const el = document.getElementById('timer-display');
-  const textEl = document.getElementById('timer-text');
+function updateTimerDisplay() {
+  const m = Math.floor(timerRemaining / 60);
+  const s = timerRemaining % 60;
+  document.getElementById('timer-display').textContent =
+    String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
 
-  const mins = Math.floor(remaining / 60);
-  const secs = Math.ceil(remaining % 60);
-  const displaySecs = secs === 60 ? 59 : secs;
-  textEl.textContent = mins + ':' + String(displaySecs).padStart(2, '0');
+function toggleTimerPause() {
+  const btn = document.getElementById('timer-pause-btn');
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    btn.textContent = 'resume';
+    btn.classList.add('paused');
+  } else if (timerRemaining > 0) {
+    timerRunning = true;
+    timerInterval = setInterval(tickTimer, 1000);
+    btn.textContent = 'pause';
+    btn.classList.remove('paused');
+    document.getElementById('timer-display').classList.remove('expired');
+  }
+}
 
-  el.className = 'timer-display';
-  if (remaining <= 0) el.classList.add('expired');
-  el.style.display = 'flex';
+function resetTimer() {
+  if (!timerEnabled) return;
+  clearInterval(timerInterval);
+  timerRunning = false;
+  document.getElementById('timer-display').classList.remove('expired');
+  document.getElementById('timer-pause-btn').textContent = 'pause';
+  document.getElementById('timer-pause-btn').classList.remove('paused');
+  timerRemaining = timerTotal;
+  updateTimerDisplay();
+  timerRunning = true;
+  timerInterval = setInterval(tickTimer, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
 }
 
 // ── DISPLAY ──
